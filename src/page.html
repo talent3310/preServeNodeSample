@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Node.js Programming for Modern Web</title>
+    <style>
+        .line { overflow: hidden; }
+        .seat {
+            margin: 2px; float: left;
+            width: 30px; height: 30px;
+            border-radius: 3px;
+        }
+        
+        .enable { background: gray; }
+        .enable:hover { background: black; }
+        .disable { background: red; }
+    </style>
+    <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- create the socket -->
+    <script>
+        // 
+        var socket = io.connect();
+
+        // 
+        socket.on('toClient', function (data) {
+        	
+        	console.log('Client receive the event from server!!!');
+            var $target = $('div[data-x = ' + data.x + '][data-y = ' + data.y + ']');
+            $target.removeClass('enable');
+            $target.addClass('disable');
+        });
+    </script>
+   
+    <script>
+        $(document).ready(function () {
+           
+            var onClickSeat = function () {
+                var x = $(this).attr('data-x');
+                var y = $(this).attr('data-y');
+
+                if (confirm('Do you want to preserve the seat?')) {
+                    $(this).off('click');
+                    socket.emit('reserve', {
+                        x: x,
+                        y: y
+                    });
+                } else {
+                    alert('Canceled!.');
+                }
+            };
+
+          
+            $.getJSON('/seats', { dummy: new Date().getTime() }, function (data) {
+              
+                $.each(data, function (indexY, line) {
+                    
+                    var $line = $('<div></div>').addClass('line');
+                    $.each(line, function (indexX, seat) {
+                      
+                        var $output = $('<div></div>', {
+                            'class': 'seat',
+                            'data-x': indexX,
+                            'data-y': indexY
+                        }).appendTo($line);
+
+                        if (seat == 1) {
+                           
+                            $output.addClass('enable').on('click', onClickSeat);
+                        } else if (seat == 2) {
+                          
+                            $output.addClass('disable');
+                        }
+                    });
+
+                   
+                    $line.appendTo('body');
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    
+</body>
+</html>
